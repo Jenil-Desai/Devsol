@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Button } from "../retroui/Button";
 import { Text } from "../retroui/Text";
 import WalletConnectButton from "../WalletConnectButton";
@@ -9,7 +10,9 @@ export default function NavigationBar() {
         <Text as={"h3"} className="font-bold" >Dev<span className="text-yellow-400">sol</span></Text>
         <div className="flex items-center space-x-4">
           <WalletConnectButton />
-          <Button variant={"secondary"}>Request</Button>
+          <Link href={"/request"}>
+            <Button variant={"secondary"}>Request</Button>
+          </Link>
         </div>
       </nav>
     </header>

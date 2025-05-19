@@ -99,6 +99,7 @@ export default function Page() {
                       <FormField
                         control={form.control}
                         name="amount"
+                        disabled={form.formState.isSubmitting}
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
@@ -116,7 +117,7 @@ export default function Page() {
                       />
                       <div className="flex justify-around items-center">
                         <WalletConnectButton />
-                        <Button type="submit" variant={"secondary"} >Request SOL</Button>
+                        <Button type="submit" variant={"secondary"} disabled={form.formState.isSubmitting}>Request SOL</Button>
                       </div>
                     </form>
                   </Form>
