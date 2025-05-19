@@ -1,51 +1,22 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/retroui/Button";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { Dialog } from "@/components/retroui/Dialog";
 import Image from "next/image";
-import { Menu } from "./retroui/Menu";
+import { WalletName } from "@solana/wallet-adapter-base";
 
-//handle wallet balance fixed to 2 decimal numbers without rounding
 export function toFixed(num: number, fixed: number): string {
   const re = new RegExp(`^-?\\d+(?:\\.\\d{0,${fixed || -1}})?`);
   return num.toString().match(re)![0];
 }
 
 export default function WalletConnectButton() {
-  const { connection } = useConnection();
   const { select, wallets, publicKey, disconnect, connecting } = useWallet();
 
   const [open, setOpen] = useState<boolean>(false);
-  const [balance, setBalance] = useState<number | null>(null);
-  const [userWalletAddress, setUserWalletAddress] = useState<string>("");
 
-  useEffect(() => {
-    if (!connection || !publicKey) {
-      return;
-    }
-
-    connection.onAccountChange(
-      publicKey,
-      (updatedAccountInfo) => {
-        setBalance(updatedAccountInfo.lamports / LAMPORTS_PER_SOL);
-      },
-      "confirmed"
-    );
-
-    connection.getAccountInfo(publicKey).then((info) => {
-      if (info) {
-        setBalance(info?.lamports / LAMPORTS_PER_SOL);
-      }
-    });
-  }, [publicKey, connection]);
-
-  useEffect(() => {
-    setUserWalletAddress(publicKey?.toBase58()!);
-  }, [publicKey]);
-
-  const handleWalletSelect = async (walletName: any) => {
+  const handleWalletSelect = async (walletName: WalletName<string>) => {
     if (walletName) {
       try {
         select(walletName);
@@ -65,18 +36,16 @@ export default function WalletConnectButton() {
     <div>
       <Dialog open={open} onOpenChange={setOpen}>
         <div className="flex gap-2 items-center">
-          {!publicKey ? (
-            <>
-              <Dialog.Trigger asChild>
-                <Button>
-                  {connecting ? "connecting..." : "Connect Wallet"}
-                </Button>
-              </Dialog.Trigger>
-            </>
-          ) : (
+          {publicKey ? (
             <Button onClick={handleDisconnect}>
               Disconnect
             </Button>
+          ) : (
+            <Dialog.Trigger asChild>
+              <Button>
+                {connecting ? "connecting..." : "Connect Wallet"}
+              </Button>
+            </Dialog.Trigger>
           )}
 
           <Dialog.Content>

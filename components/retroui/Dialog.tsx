@@ -13,9 +13,9 @@ const DialogTrigger = ReactDialog.Trigger;
 const overlayVariants = cva(
   ` fixed bg-black/80 font-head
     data-[state=open]:fade-in-0
-    data-[state=open]:animate-in 
-    data-[state=closed]:animate-out 
-    data-[state=closed]:fade-out-0 
+    data-[state=open]:animate-in
+    data-[state=closed]:animate-out
+    data-[state=closed]:fade-out-0
   `,
   {
     variants: {
@@ -32,7 +32,7 @@ const overlayVariants = cva(
 
 interface IDialogBackgroupProps
   extends HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof overlayVariants> {}
+  VariantProps<typeof overlayVariants> { }
 
 const DialogBackdrop = React.forwardRef<HTMLDivElement, IDialogBackgroupProps>(
   function DialogBackdrop(inputProps: IDialogBackgroupProps, forwardedRef) {
@@ -50,18 +50,18 @@ const DialogBackdrop = React.forwardRef<HTMLDivElement, IDialogBackgroupProps>(
 DialogBackdrop.displayName = "DialogBackdrop";
 
 const dialogVariants = cva(
-  `fixed z-50 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 
+  `fixed z-50 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
   flex flex-col border-2 shadow-md gap-4 overflow-y-auto bg-background text-foreground
   w-full h-fit max-h-[80vh] max-w-[97%] duration-300
-  data-[state=open]:animate-in 
-  data-[state=open]:slide-in-from-left-1/2 
+  data-[state=open]:animate-in
+  data-[state=open]:slide-in-from-left-1/2
   data-[state=open]:slide-in-from-top-[48%]
-  data-[state=open]:fade-in-0 
-  data-[state=open]:zoom-in-95 
-  data-[state=closed]:animate-out 
-  data-[state=closed]:fade-out-0 
-  data-[state=closed]:slide-out-to-top-[48%] 
-  data-[state=closed]:slide-out-to-left-1/2 
+  data-[state=open]:fade-in-0
+  data-[state=open]:zoom-in-95
+  data-[state=closed]:animate-out
+  data-[state=closed]:fade-out-0
+  data-[state=closed]:slide-out-to-top-[48%]
+  data-[state=closed]:slide-out-to-left-1/2
   data-[state=closed]:zoom-out-95`,
   {
     variants: {
@@ -85,7 +85,7 @@ const dialogVariants = cva(
 
 interface IDialogContentProps
   extends HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof dialogVariants> {
+  VariantProps<typeof dialogVariants> {
   overlay?: IDialogBackgroupProps;
 }
 
@@ -118,7 +118,7 @@ const DialogContent = React.forwardRef<HTMLDivElement, IDialogContentProps>(
 );
 DialogContent.displayName = "DialogContent";
 
-interface IDialogDescriptionProps extends HTMLAttributes<HTMLDivElement> {}
+type IDialogDescriptionProps = React.HTMLAttributes<HTMLDivElement>;
 const DialogDescription = ({
   children,
   className,
@@ -151,7 +151,7 @@ const dialogFooterVariants = cva(
 
 export interface IDialogFooterProps
   extends HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof dialogFooterVariants> {}
+  VariantProps<typeof dialogFooterVariants> { }
 
 const DialogFooter = ({
   children,
@@ -202,8 +202,8 @@ const DialogHeaderDefaultLayout = ({ children }: { children: ReactNode }) => {
 
 interface IDialogHeaderProps
   extends HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof dialogHeaderVariants>,
-    ReactDialog.DialogTitleProps {}
+  VariantProps<typeof dialogHeaderVariants>,
+  ReactDialog.DialogTitleProps { }
 
 const DialogHeader = ({
   children,
