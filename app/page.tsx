@@ -1,8 +1,9 @@
+import { Button } from "@/components/retroui/Button";
+
 export default function Page() {
   return (
-    <div>
-      <h1>Page</h1>
-      <p>This is a page.</p>
+    <div className="flex justify-center items-center h-screen">
+      <Button>Connect Wallet</Button>
     </div>
   );
 }
