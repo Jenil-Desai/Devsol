@@ -2,28 +2,67 @@
 import { Button } from "@/components/retroui/Button";
 import { Card } from "@/components/retroui/Card";
 import { Input } from "@/components/retroui/Input";
+import { Label } from "@/components/retroui/Label";
 import { Text } from "@/components/retroui/Text";
-import { useWallet } from "@/hooks/use-wallet";
-import { Link, ArrowLeft } from "lucide-react";
-import { useState } from "react";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import WalletConnectButton from "@/components/WalletConnectButton";
+import { RequestSolSchema, requestSolSchema } from "@/schema/reqSolSchema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 export default function Page() {
-  const [amount, setAmount] = useState("0.5")
-  const [isLoading, setIsLoading] = useState(false)
-  const [txHash, setTxHash] = useState("")
-  const { connected, address, balance, requestAirdrop } = useWallet()
+  const [balance, setBalance] = useState(0);
+  const { connection } = useConnection();
+  const wallet = useWallet();
+  const form = useForm({
+    resolver: zodResolver(requestSolSchema),
+    defaultValues: {
+      amount: 0.1,
+    },
+  })
 
-  const handleRequest = async () => {
-    if (!connected || !amount) return
+  useEffect(() => {
+    if (wallet.connected && wallet.publicKey) {
+      connection.getBalance(wallet.publicKey).then(balance => {
+        setBalance(balance / LAMPORTS_PER_SOL);
+      });
+    }
+  }, [wallet.connected, wallet.publicKey, connection]);
 
-    setIsLoading(true)
+  useEffect(() => {
+    if (!wallet.connected || !wallet.publicKey) return;
+    const interval = setInterval(() => {
+      if (!wallet.publicKey) return;
+      connection.getBalance(wallet.publicKey).then(balance => {
+        setBalance(balance / LAMPORTS_PER_SOL);
+      });
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [wallet.connected, wallet.publicKey, connection]);
+
+  async function requestSol(data: RequestSolSchema) {
+    console.log(data);
+    if (!wallet.connected || !wallet.publicKey) {
+      toast.error("Please connect your wallet first");
+      return;
+    }
     try {
-      const hash = await requestAirdrop(Number.parseFloat(amount))
-      setTxHash(hash)
+      const tx = await connection.requestAirdrop(wallet.publicKey, data.amount * LAMPORTS_PER_SOL);
+      toast.success("Successfull", {
+        description: "Transaction Hash: " + tx,
+        action: {
+          label: "View on Solana Explorer",
+          onClick: () => {
+            window.open(`https://explorer.solana.com/tx/${tx}?cluster=devnet`, "_blank");
+          },
+        },
+      });
     } catch (error) {
-      console.error("Airdrop failed:", error)
-    } finally {
-      setIsLoading(false)
+      toast.error("Error requesting SOL: " + error);
     }
   }
 
@@ -31,20 +70,15 @@ export default function Page() {
     <div className="flex h-screen flex-col">
       <main className="flex-1">
         <div className="container mx-auto max-w-2xl px-4 py-12">
-          <Link href="/" className="mb-6 inline-flex items-center text-sm text-[#8b949e] hover:text-[#f0f6fc]">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Home
-          </Link>
-
           <Card className="w-full">
             <Card.Header>
-              <Card.Title>Request Devnet SOL</Card.Title>
+              <Card.Title>Airdrop SOL</Card.Title>
             </Card.Header>
-
             <Card.Content>
-              {connected ? (
-                <div className="p-4 text-center">
+              {!wallet.connected || !wallet.publicKey ? (
+                <div className="flex flex-col justify-center items-center">
                   <p className="mb-4">Connect your wallet to request SOL</p>
+                  <WalletConnectButton />
                 </div>
               ) : (
                 <div className="space-y-6">
@@ -52,7 +86,7 @@ export default function Page() {
                     <div className="flex items-center justify-between">
                       <Text as={"p"} className="text-sm text-[#8b949e]">Wallet Address</Text>
                       <Text as={"p"} className="font-mono text-sm">
-                        {address?.slice(0, 6)}...{address?.slice(-4)}
+                        {wallet.publicKey.toString().slice(0, 6)}...{wallet.publicKey.toString().slice(-4)}
                       </Text>
                     </div>
                     <div className="flex items-center justify-between">
@@ -60,43 +94,40 @@ export default function Page() {
                       <Text as={"p"} className="font-mono text-sm">{balance} SOL</Text>
                     </div>
                   </div>
-
-                  <div className="space-y-2">
-                    <label htmlFor="amount" className="block text-sm font-medium text-[#8b949e]">
-                      Amount of SOL to request
-                    </label>
-                    <Input
-                      id="amount"
-                      type="number"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      min="0.1"
-                      max="2"
-                      step="0.1"
-                    />
-                    <p className="text-xs text-[#8b949e]">Maximum 2 SOL per request</p>
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(requestSol)} className="space-y-6">
+                      <FormField
+                        control={form.control}
+                        name="amount"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              <Label className="text-sm font-medium text-[#8b949e]">Amount of SOL to request</Label>
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Enter Amount"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="flex justify-around items-center">
+                        <WalletConnectButton />
+                        <Button type="submit" variant={"secondary"} >Request SOL</Button>
+                      </div>
+                    </form>
+                  </Form>
+                  <div>
                   </div>
-
-                  <Button
-                    onClick={handleRequest}
-                    disabled={isLoading || !amount}
-                  >
-                    {isLoading ? "Processing..." : "Request SOL"}
-                  </Button>
-
-                  {txHash && (
-                    <div className="mt-4 rounded-md bg-[#7ee787]/10 p-4">
-                      <p className="mb-2 text-sm font-medium text-[#7ee787]">Transaction Successful!</p>
-                      <p className="break-all text-xs text-[#8b949e]">Transaction Hash: {txHash}</p>
-                    </div>
-                  )}
                 </div>
               )}
             </Card.Content>
           </Card>
-        </div>
-      </main>
-
-    </div>
+        </div >
+      </main >
+    </div >
   )
 }

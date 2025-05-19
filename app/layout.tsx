@@ -3,6 +3,8 @@ import "./globals.css";
 import { Archivo_Black, Space_Grotesk } from "next/font/google";
 import NavigationBar from "@/components/globals/NavigationBar";
 import Footer from "@/components/globals/Footer";
+import AppWalletProvider from "@/components/AppWalletProvider";
+import { Toaster } from "@/components/retroui/Sonner";
 
 const archivoBlack = Archivo_Black({
   subsets: ["latin"],
@@ -31,9 +33,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${archivoBlack.variable} ${space.variable}`}>
-        <NavigationBar />
-        {children}
-        <Footer />
+        <AppWalletProvider>
+          <NavigationBar />
+          <Toaster />
+          {children}
+          <Footer />
+        </AppWalletProvider>
       </body>
     </html>
   );
